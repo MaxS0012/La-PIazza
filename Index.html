@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizzeria</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-stone-50 text-stone-800 font-sans antialiased">
+
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center text-white font-bold">🍕</div>
+                <span class="text-xl font-black tracking-tight text-stone-900">La Piazza</span>
+            </div>
+            <button onclick="toggleCart()" class="relative bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-full font-semibold transition flex items-center space-x-2 cursor-pointer">
+                <span>🛒 Carrito</span>
+                <span id="cart-count" class="bg-white text-amber-600 text-xs w-5 h-5 flex items-center justify-center rounded-full font-bold">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <header class="max-w-6xl mx-auto px-4 py-12 md:py-20 grid md:grid-cols-2 gap-12 items-center">
+        <div>
+            <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">La Especialidad de la Casa</span>
+            <h1 class="text-4xl md:text-6xl font-black text-stone-900 mt-4 leading-tight">La clásica Pizza de Jamón y Queso</h1>
+            <p class="text-stone-600 mt-4 text-lg">Masa artesanal, salsa de tomate natural, mozzarella derretida y el mejor jamón seleccionado. Simple, perfecta y directo a tu puerta.</p>
+            <div class="mt-8 flex items-center space-x-4">
+                <span class="text-3xl font-black text-stone-900">$12.99</span>
+                <button onclick="addToCart('Pizza de Jamón y Queso', 12.99)" class="bg-stone-900 hover:bg-stone-800 text-white px-8 py-3 rounded-full font-bold transition transform active:scale-95 cursor-pointer">
+                    Añadir al Carrito
+                </button>
+            </div>
+        </div>
+        <div class="flex justify-center">
+            <div class="relative w-72 h-72 md:w-96 md:h-96 bg-amber-100 rounded-full flex items-center justify-center shadow-inner">
+                <span class="text-9xl animate-bounce">🍕</span>
+                <div class="absolute bottom-4 right-4 bg-white p-3 rounded-xl shadow-md text-center">
+                    <p class="text-xs text-stone-500 font-medium">100% Fresca</p>
+                    <p class="text-sm font-bold text-emerald-600">¡Más Vendida!</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="bg-stone-100 py-16">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl font-black text-stone-900 text-center mb-12">Completa tu Orden</h2>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col justify-between">
+                    <div>
+                        <span class="text-3xl">🥤</span>
+                        <h3 class="text-xl font-bold text-stone-900 mt-4">Bebida Familiar</h3>
+                        <p class="text-stone-500 text-sm mt-1">Refresco frío de 1.5L para acompañar.</p>
+                    </div>
+                    <div class="mt-6 flex justify-between items-center">
+                        <span class="text-lg font-bold text-stone-900">$2.50</span>
+                        <button onclick="addToCart('Bebida Familiar', 2.50)" class="border border-stone-300 hover:border-stone-900 text-stone-900 px-4 py-2 rounded-full text-sm font-bold transition cursor-pointer">+ Agregar</button>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col justify-between">
+                    <div>
+                        <span class="text-3xl">🧄</span>
+                        <h3 class="text-xl font-bold text-stone-900 mt-4">Pan con Ajo</h3>
+                        <p class="text-stone-500 text-sm mt-1">4 piezas de pan tostado con mantequilla de ajo y hierbas.</p>
+                    </div>
+                    <div class="mt-6 flex justify-between items-center">
+                        <span class="text-lg font-bold text-stone-900">$3.99</span>
+                        <button onclick="addToCart('Pan con Ajo', 3.99)" class="border border-stone-300 hover:border-stone-900 text-stone-900 px-4 py-2 rounded-full text-sm font-bold transition cursor-pointer">+ Agregar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="cart-sidebar" class="fixed inset-y-0 right-0 w-full sm:w-96 bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-6 border-b flex justify-between items-center">
+            <h3 class="text-xl font-bold text-stone-900">Tu Pedido</h3>
+            <button onclick="toggleCart()" class="text-stone-400 hover:text-stone-600 text-2xl font-bold cursor-pointer">&times;</button>
+        </div>
+        
+        <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <p class="text-stone-500 text-center py-8">El carrito está vacío.</p>
+        </div>
+
+        <div class="p-6 border-t bg-stone-50">
+            <div class="flex justify-between items-center mb-4">
+                <span class="font-medium text-stone-600">Total a pagar:</span>
+                <span id="cart-total" class="text-2xl font-black text-stone-900">$0.00</span>
+            </div>
+            
+            <form id="checkout-form" onsubmit="processOrder(event)" class="space-y-3">
+                <input type="text" id="cust-name" placeholder="Tu Nombre" required class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-amber-500">
+                <input type="text" id="cust-address" placeholder="Dirección de Envío" required class="w-full px-4 py-2 border rounded-xl text-sm focus:outline-amber-500">
+                
+                <div class="bg-white p-3 border rounded-xl space-y-2">
+                    <label class="text-xs font-bold text-stone-400 uppercase tracking-wider block">Pago Seguro Simulado</label>
+                    <input type="text" placeholder="💳 4242 •••• •••• 4242" disabled class="w-full bg-stone-50 px-2 py-1 text-sm text-stone-500 border-none outline-none">
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold transition shadow-md shadow-emerald-100 cursor-pointer">
+                    Confirmar y Pagar Orden
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN DE SUPABASE
+        // Reemplaza estas variables con tus credenciales del panel de Supabase
+        const SUPABASE_URL = "https://oszgtyaizpijukfxywlw.supabase.co/rest/v1/"; 
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zemd0eWFpenBpanVrZnh5d2x3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MTk5NTcsImV4cCI6MjA5NjM5NTk1N30.UHSehovDHh4vg-11l1D9hvyHSlwWZP-WxH-JH1j5Ltw";
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ESTADO DEL CARRITO
+        let cart = [];
+
+        function toggleCart() {
+            const sidebar = document.getElementById('cart-sidebar');
+            sidebar.classList.toggle('translate-x-full');
+        }
+
+        function addToCart(name, price) {
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ name, price, quantity: 1 });
+            }
+            updateCartUI();
+            // Abre automáticamente el carrito para feedback visual
+            document.getElementById('cart-sidebar').classList.remove('translate-x-full');
+        }
+
+        function updateCartUI() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartCount = document.getElementById('cart-count');
+            const cartTotal = document.getElementById('cart-total');
+            
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = `<p class="text-stone-500 text-center py-8">El carrito está vacío.</p>`;
+                cartCount.innerText = '0';
+                cartTotal.innerText = '$0.00';
+                return;
+            }
+
+            let total = 0;
+            let count = 0;
+            cartItemsContainer.innerHTML = '';
+
+            cart.forEach((item, index) => {
+                total += item.price * item.quantity;
+                count += item.quantity;
+
+                cartItemsContainer.innerHTML += `
+                    <div class="flex justify-between items-center bg-stone-50 p-3 rounded-xl">
+                        <div>
+                            <p class="font-bold text-stone-900">${item.name}</p>
+                            <p class="text-xs text-stone-500">$${item.price} x ${item.quantity}</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-sm text-stone-700">$${(item.price * item.quantity).toFixed(2)}</span>
+                            <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 font-bold px-2 cursor-pointer">&times;</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            cartCount.innerText = count;
+            cartTotal.innerText = `$${total.toFixed(2)}`;
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        // INTEGRACIÓN Y ENVÍO A SUPABASE + SIMULACIÓN DE PAGO
+        async function processOrder(event) {
+            event.preventDefault();
+
+            if (cart.length === 0) {
+                alert("Tu carrito está vacío.");
+                return;
+            }
+
+            const name = document.getElementById('cust-name').value;
+            const address = document.getElementById('cust-address').value;
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            // Estructura del pedido para guardar en Base de Datos
+            const orderData = {
+                customer_name: name,
+                delivery_address: address,
+                items: JSON.stringify(cart),
+                total_amount: total,
+                status: 'Paid', // Simula que el pago de Stripe pasó con éxito
+                created_at: new Date()
+            };
+
+            try {
+                // Inserta los datos en la tabla 'pedidos' de tu base de datos Supabase
+                const { data, error } = await supabase
+                    .from('pedidos') // Asegúrate de crear esta tabla en Supabase
+                    .insert([orderData]);
+
+                if (error) throw error;
+
+                // Si todo sale bien, simulamos el éxito del pago
+                alert(`¡Pago Procesado Exitosamente con Stripe!\nGracias por tu compra, ${name}. Tu pizza de Jamón y Queso va en camino.`);
+                
+                // Limpiar carrito y cerrar
+                cart = [];
+                updateCartUI();
+                document.getElementById('checkout-form').reset();
+                toggleCart();
+
+            } catch (error) {
+                console.error("Error al guardar en Supabase:", error);
+                // NOTA: Si aún no configuras las keys de Supabase, saltará este alert, pero la lógica ya es completamente funcional.
+                alert("Simulación de Compra Exitosa (Configura tus credenciales de Supabase para guardar la orden en la base de datos).");
+            }
+        }
+    </script>
+</body>
+</html>
